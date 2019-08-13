@@ -1888,6 +1888,10 @@ void CGameMovement::StayOnGround( void )
 		}
 	}
 }
+// Camera Bob
+ConVar cl_camtilt_enabled("cl_camtilt_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1);
+ConVar cl_viewbob_timer("cl_viewbob_timer", "1", 0, "Speed of Oscillation");
+ConVar cl_camtilt_scale("cl_camtilt_scale", "2.5", 0, "Magnitude of Oscillation");
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1915,6 +1919,15 @@ void CGameMovement::WalkMove( void )
 	fmove = mv->m_flForwardMove;
 	smove = mv->m_flSideMove;
 
+	if (cl_camtilt_enabled.GetInt() == 1 && !engine->IsPaused())
+	{
+		float offset = 2 * cl_viewbob_timer.GetFloat() * player->GetAbsVelocity().Length() * cl_camtilt_scale.GetFloat() / 4000000 * smove;
+		QAngle playerAngles = mv->m_vecViewAngles;
+		QAngle camTilt(0, 0, offset);
+		QAngle resultAngles(playerAngles.x, playerAngles.y, playerAngles.z + camTilt.z);
+		player->ViewPunch(camTilt);
+
+	}
 	// Zero out z components of movement vectors
 	if ( g_bMovementOptimizations )
 	{
@@ -2191,9 +2204,9 @@ void CGameMovement::FullObserverMove( void )
 	{
 		factor /= 2.0f;
 	}
-
 	float fmove = mv->m_flForwardMove * factor;
 	float smove = mv->m_flSideMove * factor;
+	
 	
 	VectorNormalize (forward);  // Normalize remainder of vectors
 	VectorNormalize (right);    // 
@@ -2347,7 +2360,9 @@ void CGameMovement::PlaySwimSound()
 	MoveHelper()->StartSound( mv->GetAbsOrigin(), "Player.Swim" );
 }
 
-
+#define SA_MOVEMENT
+ConVar sa_sv_autojump("sv_autojump", "0", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
+ConVar sa_sv_queuejump("sv_queuejump", "1", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2358,6 +2373,7 @@ bool CGameMovement::CheckJumpButton( void )
 		mv->m_nOldButtons |= IN_JUMP ;	// don't jump again until released
 		return false;
 	}
+	
 
 	// See if we are waterjumping.  If so, decrement count and return.
 	if (player->m_flWaterJumpTime)
@@ -2403,17 +2419,35 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( player->m_Local.m_bSlowMovement )
 		return false;
 #endif
+	
 
-	if ( mv->m_nOldButtons & IN_JUMP )
+
+	//DO POGO STICK POGGERS
+	ConVar *pAutoJump = cvar->FindVar("sv_autojump");
+	ConVar *pQueueJump = cvar->FindVar("sv_queuejump");
+	//pressed jump and bot autojump and queuejump are disabled through console.
+	if ( mv->m_nOldButtons & IN_JUMP && pAutoJump->GetInt() == 0 && pQueueJump->GetInt() == 0) {
 		return false;		// don't pogo stick
+	}
+	//My jumping shit 
+	//holding jump
+	if (mv->m_nButtons & IN_JUMP | mv->m_nOldButtons & IN_JUMP && pQueueJump->GetInt() == 1 && pAutoJump->GetInt() == 0) {
+		//holding jump and on the ground
+		if (player->GetGroundEntity() != NULL) {
+#ifdef CLIENT_DLL
+			engine->ClientCmd("-jump");
+#endif
+		}
+	}
+	
 
 	// Cannot jump will in the unduck transition.
-	if ( player->m_Local.m_bDucking && (  player->GetFlags() & FL_DUCKING ) )
-		return false;
+	//if ( player->m_Local.m_bDucking && (  player->GetFlags() & FL_DUCKING ) )
+		//return false;
 
 	// Still updating the eye position.
-	if ( player->m_Local.m_flDuckJumpTime > 0.0f )
-		return false;
+	//if ( player->m_Local.m_flDuckJumpTime > 0.0f )
+		//return false;
 
 
 	// In the air now.
@@ -2433,8 +2467,10 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( g_bMovementOptimizations )
 	{
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
-		Assert( GetCurrentGravity() == 600.0f );
-		flMul = 160.0f;	// approx. 21 units.
+		//Assert( GetCurrentGravity() == 600.0f );
+		//flMul = 160.0f;	// approx. 21 units.
+		Assert( GetCurrentGravity() == 800.0f );
+		flMul = 268.3281572999747f;
 #else
 		Assert( GetCurrentGravity() == 800.0f );
 		flMul = 268.3281572999747f;
@@ -2840,10 +2876,10 @@ inline bool CGameMovement::OnLadder( trace_t &trace )
 // HPE_BEGIN
 // [sbodenbender] make ladders easier to climb in cstrike
 //=============================================================================
-#if defined (CSTRIKE_DLL)
+//#if defined (CSTRIKE_DLL)
 ConVar sv_ladder_dampen ( "sv_ladder_dampen", "0.2", FCVAR_REPLICATED, "Amount to dampen perpendicular movement on a ladder", true, 0.0f, true, 1.0f );
 ConVar sv_ladder_angle( "sv_ladder_angle", "-0.707", FCVAR_REPLICATED, "Cos of angle of incidence to ladder perpendicular for applying ladder_dampen", true, -1.0f, true, 1.0f );
-#endif
+//#endif
 //=============================================================================
 // HPE_END
 //=============================================================================
@@ -2977,7 +3013,7 @@ bool CGameMovement::LadderMove( void )
 			// HPE_BEGIN
 			// [sbodenbender] make ladders easier to climb in cstrike
 			//=============================================================================
-#if defined (CSTRIKE_DLL)
+//#if defined (CSTRIKE_DLL)
 			// break lateral into direction along tmp (up the ladder) and direction along perp (perpendicular to ladder)
 			float tmpDist = DotProduct ( tmp, lateral );
 			float perpDist = DotProduct ( perp, lateral );
@@ -2991,7 +3027,7 @@ bool CGameMovement::LadderMove( void )
 
 			if (angleDot < sv_ladder_angle.GetFloat())
 				lateral = (tmp * tmpDist) + (perp * sv_ladder_dampen.GetFloat() * perpDist);
-#endif // CSTRIKE_DLL
+//#endif // CSTRIKE_DLL
 			//=============================================================================
 			// HPE_END
 			//=============================================================================
