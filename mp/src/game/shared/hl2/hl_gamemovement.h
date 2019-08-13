@@ -1,3 +1,4 @@
+/*
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Special handling for hl2 usable ladders
@@ -127,3 +128,4 @@ inline CFuncLadder *CHL2GameMovement::GetLadder()
 {
 	return static_cast<CFuncLadder*>( static_cast<CBaseEntity *>( GetHL2Player()->m_HL2Local.m_hLadder.Get() ) );
 }
+*/

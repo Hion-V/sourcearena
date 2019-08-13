@@ -1,3 +1,20 @@
+//========= Copyright © 1996-2010, Valve Corporation, All rights reserved. ============//
+//
+// Purpose: 
+//
+//=============================================================================//
+#include "cbase.h"
+#include "gamemovement.h"
+
+
+
+// Expose our interface.
+static CGameMovement g_GameMovement;
+IGameMovement *g_pGameMovement = (IGameMovement *)&g_GameMovement;
+
+EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CGameMovement, IGameMovement, INTERFACENAME_GAMEMOVEMENT, g_GameMovement);
+
+/*
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Special handling for hl2 usable ladders
@@ -142,6 +159,7 @@ LINK_ENTITY_TO_CLASS( reserved_spot, CReservePlayerSpot );
 //			goalpos - 
 //			*ladder - 
 //-----------------------------------------------------------------------------
+
 void CHL2GameMovement::StartForcedMove( bool mounting, float transit_speed, const Vector& goalpos, CFuncLadder *ladder )
 {
 	LadderMove_t* lm = GetLadderMove();
@@ -522,7 +540,7 @@ bool CHL2GameMovement::ExitLadderViaDismountNode( CFuncLadder *ladder, bool stri
 //-----------------------------------------------------------------------------
 void CHL2GameMovement::FullLadderMove()
 {
-#if !defined( CLIENT_DLL )
+//#if !defined( CLIENT_DLL )
 	CFuncLadder *ladder = GetLadder();
 	Assert( ladder );
 	if ( !ladder )
@@ -701,7 +719,7 @@ void CHL2GameMovement::FullLadderMove()
 			mv->SetAbsOrigin( oldOrigin );
 		}
 	}
-#endif
+//#endif
 }
 
 bool CHL2GameMovement::CheckLadderAutoMountEndPoint( CFuncLadder *ladder, const Vector& bestOrigin )
@@ -1150,3 +1168,4 @@ bool CHL2GameMovement::CanAccelerate()
 
 	EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CGameMovement, IGameMovement,INTERFACENAME_GAMEMOVEMENT, g_GameMovement );
 #endif
+*/
