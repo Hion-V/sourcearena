@@ -18,7 +18,7 @@ ipch
 *.opensdf
 *.idb
 *.vcxproj
-*.sln
+#*.sln
 
 # OSX/Linux build products
 *.mak
@@ -54,3 +54,52 @@ config.cfg
 # shader files
 *.tmp
 
+sp/game/mod_hl2/cfg/server_blacklist.txt
+*.cache
+*.pdb
+*.db
+sp/src/lib/public/mathlib.lib
+sp/src/lib/public/raytrace.lib
+sp/src/lib/public/tier1.lib
+sp/src/lib/public/vgui_controls.lib
+sp/src/lib/public/mathlib.lib
+sp/src/lib/public/raytrace.lib
+sp/src/lib/public/tier1.lib
+sp/src/lib/public/vgui_controls.lib
+.vs/slnx.sqlite
+.vs/sourcearena/v16/Browse.VC.opendb
+.vs/VSWorkspaceState.json
+sp/game/mod_hl2/GameState.txt
+sp/game/mod_hl2/maps/graphs/sdk_vehicles.ain
+sp/game/mod_hl2/stats.txt
+sp/game/mod_hl2/voice_ban.dt
+sp/src/game/client/client_episodic.vcxproj.filters
+sp/src/game/client/client_episodic.vcxproj.vpc_crc
+sp/src/game/client/client_episodic.vpc.sentinel
+sp/src/game/client/client_hl2.vcxproj.filters
+sp/src/game/client/client_hl2.vcxproj.vpc_crc
+sp/src/game/client/client_hl2.vpc.sentinel
+sp/src/game/server/server_episodic.vcxproj.filters
+sp/src/game/server/server_episodic.vcxproj.vpc_crc
+sp/src/game/server/server_episodic.vpc.sentinel
+sp/src/game/server/server_hl2.vcxproj.filters
+sp/src/game/server/server_hl2.vcxproj.vpc_crc
+sp/src/game/server/server_hl2.vpc.sentinel
+sp/src/lib/public/mathlib.lib
+sp/src/lib/public/raytrace.lib
+sp/src/lib/public/tier1.lib
+sp/src/lib/public/vgui_controls.lib
+sp/src/mathlib/mathlib.vcxproj.filters
+sp/src/mathlib/mathlib.vcxproj.vpc_crc
+sp/src/mathlib/mathlib.vpc.sentinel
+sp/src/raytrace/raytrace.vcxproj.filters
+sp/src/raytrace/raytrace.vcxproj.vpc_crc
+sp/src/raytrace/raytrace.vpc.sentinel
+sp/src/tier1/tier1.vcxproj.filters
+sp/src/tier1/tier1.vcxproj.vpc_crc
+sp/src/tier1/tier1.vpc.sentinel
+sp/src/vgui2/vgui_controls/vgui_controls.vcxproj.filters
+sp/src/vgui2/vgui_controls/vgui_controls.vcxproj.vpc_crc
+sp/src/vgui2/vgui_controls/vgui_controls.vpc.sentinel
+*.lib
+*.lib
