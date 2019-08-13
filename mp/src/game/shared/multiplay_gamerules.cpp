@@ -628,7 +628,8 @@ ConVarRef suitcharger( "sk_suitcharger" );
 			break;
 		default:
 		case 0:// fixed
-			return 10;
+			//return 10;
+			return 0;
 			break;
 		}
 	} 
