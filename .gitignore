@@ -113,3 +113,5 @@ sp/src/lib/public/vgui_controls.lib
 #game directories
 sp/game/*
 mp/game/*
+*.vpc_crc
+*.filters
