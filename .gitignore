@@ -18,8 +18,13 @@ ipch
 *.opensdf
 *.idb
 *.vcxproj
-#*.sln
+*.sln
+*.lib
+
+# Visual studio config dirs
 .vs/*
+mp/src/.vs/*
+sp/src/.vs/*
 
 # OSX/Linux build products
 *.mak
@@ -102,9 +107,7 @@ sp/src/tier1/tier1.vpc.sentinel
 sp/src/vgui2/vgui_controls/vgui_controls.vcxproj.filters
 sp/src/vgui2/vgui_controls/vgui_controls.vcxproj.vpc_crc
 sp/src/vgui2/vgui_controls/vgui_controls.vpc.sentinel
-*.lib
-*.lib
-*.lib
+
 sp/src/lib/public/mathlib.lib
 sp/src/lib/public/raytrace.lib
 sp/src/lib/public/tier1.lib
@@ -113,3 +116,17 @@ sp/src/lib/public/vgui_controls.lib
 #game directories
 sp/game/*
 mp/game/*
+*.vpc_crc
+*.filters
+mp/src/game/server/server_hl2mp.vpc.sentinel
+mp/src/game/client/client_hl2mp.vpc.sentinel
+mp/src/.vs/games/v16/Browse.VC.opendb
+mp/src/.vs/*
+mp/src/vgui2/vgui_controls/vgui_controls.vpc.sentinel
+mp/src/tier1/tier1.vpc.sentinel
+mp/src/raytrace/raytrace.vpc.sentinel
+mp/src/mathlib/mathlib.vpc.sentinel
+mp/src/lib/public/vgui_controls.lib
+mp/src/lib/public/tier1.lib
+mp/src/lib/public/raytrace.lib
+mp/src/lib/public/mathlib.lib
