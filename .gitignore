@@ -19,7 +19,12 @@ ipch
 *.idb
 *.vcxproj
 *.sln
+*.lib
+
+# Visual studio config dirs
 .vs/*
+mp/src/.vs/*
+sp/src/.vs/*
 
 # OSX/Linux build products
 *.mak
