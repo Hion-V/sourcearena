@@ -65,6 +65,7 @@ sp/game/mod_hl2/stats.txt
 sp/game/mod_hl2/voice_ban.dt
 
 
+*.vcxproj.FileListAbsolute.txt
 *.vpc_crc
 *.sentinel
 *.filters
