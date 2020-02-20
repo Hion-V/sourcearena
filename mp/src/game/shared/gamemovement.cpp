@@ -36,6 +36,14 @@ extern IFileSystem *filesystem;
 #endif
 
 
+#ifndef SA_MOVEMENT
+	#define SA_MOVEMENT
+#endif
+ConVar sa_sv_pogostick("sv_pogostick", "0", FCVAR_REPLICATED, "queue jumps", 1, 0, 1, 1);
+ConVar sa_sv_queuejump("sv_queuejump", "1", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
+
+
+
 // tickcount currently isn't set during prediction, although gpGlobals->curtime and
 // gpGlobals->frametime are. We should probably set tickcount (to player->m_nTickBase),
 // but we're REALLY close to shipping, so we can change that later and people can use
@@ -62,7 +70,7 @@ ConVar debug_latch_reset_onduck( "debug_latch_reset_onduck", "1", FCVAR_CHEAT );
 #endif
 
 // [MD] I'll remove this eventually. For now, I want the ability to A/B the optimizations.
-bool g_bMovementOptimizations = true;
+bool g_bMovementOptimizations = false; //switched to false to fix prediction errors
 
 // Roughly how often we want to update the info about the ground surface we're on.
 // We don't need to do this very often.
@@ -1199,6 +1207,14 @@ void CGameMovement::FinishTrackPredictionErrors( CBasePlayer *pPlayer )
 //-----------------------------------------------------------------------------
 void CGameMovement::FinishMove( void )
 {
+	ConVar* pPogoStick = cvar->FindVar("sv_pogostick");
+	ConVar* pQueueJump = cvar->FindVar("sv_queuejump");
+	if (!(mv->m_nButtons & IN_JUMP) && pQueueJump->GetInt() == 1) {
+		mv->m_bRejumpAllowed = true;
+	}
+	else if (pPogoStick->GetInt() == 1) {
+		mv->m_bRejumpAllowed = true;
+	}
 	mv->m_nOldButtons = mv->m_nButtons;
 }
 
@@ -1893,6 +1909,12 @@ ConVar cl_camtilt_enabled("cl_camtilt_enabled", "1", 0, "Oscillation Toggle", tr
 ConVar cl_viewbob_timer("cl_viewbob_timer", "1", 0, "Speed of Oscillation");
 ConVar cl_camtilt_scale("cl_camtilt_scale", "2.5", 0, "Magnitude of Oscillation");
 
+// Camera Bob
+ConVar cl_camtilt_enabled("cl_camtilt_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1);
+ConVar cl_viewbob_timer("cl_viewbob_timer", "1", 0, "Speed of Oscillation");
+ConVar cl_camtilt_scale("cl_camtilt_scale", "2.5", 0, "Magnitude of Oscillation");
+
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2087,7 +2109,8 @@ void CGameMovement::FullWalkMove( )
 		// If we are on ground, no downward velocity.
 		if ( player->GetGroundEntity() != NULL )
 		{
-			mv->m_vecVelocity[2] = 0;			
+			mv->m_vecVelocity[2] = 0;	
+			mv->m_bRejumpAllowed = true;
 		}
 	}
 	else
@@ -2368,6 +2391,9 @@ ConVar sa_sv_queuejump("sv_queuejump", "1", FCVAR_REPLICATED, "auto bunny hoppin
 //-----------------------------------------------------------------------------
 bool CGameMovement::CheckJumpButton( void )
 {
+	ConVar* pPogoStick = cvar->FindVar("sv_pogostick");
+	ConVar* pQueueJump = cvar->FindVar("sv_queuejump");
+	
 	if (player->pl.deadflag)
 	{
 		mv->m_nOldButtons |= IN_JUMP ;	// don't jump again until released
@@ -2381,13 +2407,13 @@ bool CGameMovement::CheckJumpButton( void )
 		player->m_flWaterJumpTime -= gpGlobals->frametime;
 		if (player->m_flWaterJumpTime < 0)
 			player->m_flWaterJumpTime = 0;
-		
+
 		return false;
 	}
 
 	// If we are in the water most of the way...
 	if ( player->GetWaterLevel() >= 2 )
-	{	
+	{
 		// swimming, not jumping
 		SetGroundEntity( NULL );
 
@@ -2395,7 +2421,7 @@ bool CGameMovement::CheckJumpButton( void )
 			mv->m_vecVelocity[2] = 100;
 		else if (player->GetWaterType() == CONTENTS_SLIME)
 			mv->m_vecVelocity[2] = 80;
-		
+
 		// play swiming sound
 		if ( player->m_flSwimSoundTime <= 0 )
 		{
@@ -2408,11 +2434,13 @@ bool CGameMovement::CheckJumpButton( void )
 	}
 
 	// No more effect
- 	if (player->GetGroundEntity() == NULL)
+	if (player->GetGroundEntity() == NULL)
 	{
-		mv->m_nOldButtons |= IN_JUMP;
+		//Removed because we don't want the jump button to become 'unpressed'
+		// mv->m_nOldButtons |= IN_JUMP;
 		return false;		// in air, so no effect
 	}
+	DevMsg("Got past getGroundEntity() == NULL \n");
 
 	// Don't allow jumping when the player is in a stasis field.
 #ifndef HL2_EPISODIC
@@ -2421,12 +2449,8 @@ bool CGameMovement::CheckJumpButton( void )
 #endif
 	
 
-
-	//DO POGO STICK POGGERS
-	ConVar *pAutoJump = cvar->FindVar("sv_autojump");
-	ConVar *pQueueJump = cvar->FindVar("sv_queuejump");
-	//pressed jump and bot autojump and queuejump are disabled through console.
-	if ( mv->m_nOldButtons & IN_JUMP && pAutoJump->GetInt() == 0 && pQueueJump->GetInt() == 0) {
+	//pressed jump on last tick/frame and both autojump and queuejump are disabled through console.
+	if ( mv->m_nOldButtons & IN_JUMP && !(mv->m_bRejumpAllowed ) ) {
 		return false;		// don't pogo stick
 	}
 	//My jumping shit 
@@ -2441,6 +2465,8 @@ bool CGameMovement::CheckJumpButton( void )
 	}
 	
 
+	}
+	//DevMsg("Got past dont pogo \n");
 	// Cannot jump will in the unduck transition.
 	//if ( player->m_Local.m_bDucking && (  player->GetFlags() & FL_DUCKING ) )
 		//return false;
@@ -2450,27 +2476,34 @@ bool CGameMovement::CheckJumpButton( void )
 		//return false;
 
 
+	if (pPogoStick->GetInt() == 0) {
+		DevMsg("rejump disabled \n");
+		mv->m_bRejumpAllowed = false;
+	}
+	
+
+
+
+
 	// In the air now.
-    SetGroundEntity( NULL );
-	
+	SetGroundEntity( NULL );
+
 	player->PlayStepSound( (Vector &)mv->GetAbsOrigin(), player->m_pSurfaceData, 1.0, true );
-	
+
 	MoveHelper()->PlayerSetAnimation( PLAYER_JUMP );
 
 	float flGroundFactor = 1.0f;
 	if (player->m_pSurfaceData)
 	{
-		flGroundFactor = player->m_pSurfaceData->game.jumpFactor; 
+		flGroundFactor = player->m_pSurfaceData->game.jumpFactor;
 	}
 
 	float flMul;
 	if ( g_bMovementOptimizations )
 	{
-#if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
-		//Assert( GetCurrentGravity() == 600.0f );
-		//flMul = 160.0f;	// approx. 21 units.
-		Assert( GetCurrentGravity() == 800.0f );
-		flMul = 268.3281572999747f;
+#if defined(HL2_DLL) &!defined(SArena_DLL) || defined(HL2_CLIENT_DLL) &!defined(SArena_DLL)
+		Assert( GetCurrentGravity() == 600.0f );
+		flMul = 160.0f;	// approx. 21 units.
 #else
 		Assert( GetCurrentGravity() == 800.0f );
 		flMul = 268.3281572999747f;
@@ -2479,7 +2512,10 @@ bool CGameMovement::CheckJumpButton( void )
 	}
 	else
 	{
-		flMul = sqrt(2 * GetCurrentGravity() * GAMEMOVEMENT_JUMP_HEIGHT);
+		//flMul = sqrt(2 * GetCurrentGravity() * GAMEMOVEMENT_JUMP_HEIGHT);
+		//We need these
+		Assert(GetCurrentGravity() == 800.0f);
+		flMul = 268.3281572999747f;
 	}
 
 	// Acclerate upward
@@ -2502,14 +2538,14 @@ bool CGameMovement::CheckJumpButton( void )
 
 	// Add a little forward velocity based on your current forward velocity - if you are not sprinting.
 #if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
-	if ( gpGlobals->maxClients == 1 )
-	{
+	//if ( gpGlobals->maxClients == 1 )
+	//{
 		CHLMoveData *pMoveData = ( CHLMoveData* )mv;
 		Vector vecForward;
 		AngleVectors( mv->m_vecViewAngles, &vecForward );
 		vecForward.z = 0;
 		VectorNormalize( vecForward );
-		
+
 		// We give a certain percentage of the current forward movement as a bonus to the jump speed.  That bonus is clipped
 		// to not accumulate over time.
 		float flSpeedBoostPerc = ( !pMoveData->m_bIsSprinting && !player->m_Local.m_bDucked ) ? 0.5f : 0.1f;
@@ -2520,7 +2556,7 @@ bool CGameMovement::CheckJumpButton( void )
 		// If we're over the maximum, we want to only boost as much as will get us to the goal speed
 		if ( flNewSpeed > flMaxSpeed )
 		{
-			flSpeedAddition -= flNewSpeed - flMaxSpeed;
+			//flSpeedAddition -= flNewSpeed - flMaxSpeed;
 		}
 
 		if ( mv->m_flForwardMove < 0.0f )
@@ -2528,7 +2564,7 @@ bool CGameMovement::CheckJumpButton( void )
 
 		// Add it on
 		VectorAdd( (vecForward*flSpeedAddition), mv->m_vecVelocity, mv->m_vecVelocity );
-	}
+	//}
 #endif
 
 	FinishGravity();
@@ -2559,9 +2595,13 @@ bool CGameMovement::CheckJumpButton( void )
 	}
 
 #endif
-
-	// Flag that we jumped.
-	mv->m_nOldButtons |= IN_JUMP;	// don't jump again until released
+	
+	//Commented out because idk why
+	else if (pPogoStick->GetInt() == 0 && pQueueJump->GetInt() == 1 && player->GetGroundEntity() != NULL) {
+		// Flag that we jumped.
+		mv->m_nOldButtons |= IN_JUMP;	// don't jump again until released
+	}
+	
 	return true;
 }
 
@@ -2876,7 +2916,7 @@ inline bool CGameMovement::OnLadder( trace_t &trace )
 // HPE_BEGIN
 // [sbodenbender] make ladders easier to climb in cstrike
 //=============================================================================
-//#if defined (CSTRIKE_DLL)
+#if defined (CSTRIKE_DLL) || defined( SArena_DLL )
 ConVar sv_ladder_dampen ( "sv_ladder_dampen", "0.2", FCVAR_REPLICATED, "Amount to dampen perpendicular movement on a ladder", true, 0.0f, true, 1.0f );
 ConVar sv_ladder_angle( "sv_ladder_angle", "-0.707", FCVAR_REPLICATED, "Cos of angle of incidence to ladder perpendicular for applying ladder_dampen", true, -1.0f, true, 1.0f );
 //#endif
@@ -3013,7 +3053,7 @@ bool CGameMovement::LadderMove( void )
 			// HPE_BEGIN
 			// [sbodenbender] make ladders easier to climb in cstrike
 			//=============================================================================
-//#if defined (CSTRIKE_DLL)
+#if defined (CSTRIKE_DLL) || defined( SArena_DLL )
 			// break lateral into direction along tmp (up the ladder) and direction along perp (perpendicular to ladder)
 			float tmpDist = DotProduct ( tmp, lateral );
 			float perpDist = DotProduct ( perp, lateral );
