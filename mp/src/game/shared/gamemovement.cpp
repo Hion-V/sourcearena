@@ -36,8 +36,9 @@ extern IFileSystem *filesystem;
 #endif
 
 
-
-#define SA_MOVEMENT
+#ifndef SA_MOVEMENT
+	#define SA_MOVEMENT
+#endif
 ConVar sa_sv_pogostick("sv_pogostick", "0", FCVAR_REPLICATED, "queue jumps", 1, 0, 1, 1);
 ConVar sa_sv_queuejump("sv_queuejump", "1", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
 
@@ -2387,6 +2388,7 @@ bool CGameMovement::CheckJumpButton( void )
 {
 	ConVar* pPogoStick = cvar->FindVar("sv_pogostick");
 	ConVar* pQueueJump = cvar->FindVar("sv_queuejump");
+	
 	if (player->pl.deadflag)
 	{
 		mv->m_nOldButtons |= IN_JUMP ;	// don't jump again until released
@@ -2517,8 +2519,8 @@ bool CGameMovement::CheckJumpButton( void )
 
 	// Add a little forward velocity based on your current forward velocity - if you are not sprinting.
 #if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
-	if ( gpGlobals->maxClients == 1 )
-	{
+	//if ( gpGlobals->maxClients == 1 )
+	//{
 		CHLMoveData *pMoveData = ( CHLMoveData* )mv;
 		Vector vecForward;
 		AngleVectors( mv->m_vecViewAngles, &vecForward );
@@ -2535,7 +2537,7 @@ bool CGameMovement::CheckJumpButton( void )
 		// If we're over the maximum, we want to only boost as much as will get us to the goal speed
 		if ( flNewSpeed > flMaxSpeed )
 		{
-			flSpeedAddition -= flNewSpeed - flMaxSpeed;
+			//flSpeedAddition -= flNewSpeed - flMaxSpeed;
 		}
 
 		if ( mv->m_flForwardMove < 0.0f )
@@ -2543,7 +2545,7 @@ bool CGameMovement::CheckJumpButton( void )
 
 		// Add it on
 		VectorAdd( (vecForward*flSpeedAddition), mv->m_vecVelocity, mv->m_vecVelocity );
-	}
+	//}
 #endif
 
 	FinishGravity();
@@ -2576,10 +2578,10 @@ bool CGameMovement::CheckJumpButton( void )
 #endif
 	
 	//Commented out because idk why
-	//else if (pPogoStick->GetInt() == 0 && pQueueJump->GetInt() == 1 && player->GetGroundEntity() != NULL) {
+	else if (pPogoStick->GetInt() == 0 && pQueueJump->GetInt() == 1 && player->GetGroundEntity() != NULL) {
 		// Flag that we jumped.
-	//	mv->m_nOldButtons |= IN_JUMP;	// don't jump again until released
-	//}
+		mv->m_nOldButtons |= IN_JUMP;	// don't jump again until released
+	}
 	
 	return true;
 }
