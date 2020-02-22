@@ -1904,10 +1904,6 @@ void CGameMovement::StayOnGround( void )
 		}
 	}
 }
-// Camera Bob
-ConVar cl_camtilt_enabled("cl_camtilt_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1);
-ConVar cl_viewbob_timer("cl_viewbob_timer", "1", 0, "Speed of Oscillation");
-ConVar cl_camtilt_scale("cl_camtilt_scale", "2.5", 0, "Magnitude of Oscillation");
 
 // Camera Bob
 ConVar cl_camtilt_enabled("cl_camtilt_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1);
@@ -1950,6 +1946,7 @@ void CGameMovement::WalkMove( void )
 		player->ViewPunch(camTilt);
 
 	}
+	
 	// Zero out z components of movement vectors
 	if ( g_bMovementOptimizations )
 	{
@@ -2227,9 +2224,9 @@ void CGameMovement::FullObserverMove( void )
 	{
 		factor /= 2.0f;
 	}
+
 	float fmove = mv->m_flForwardMove * factor;
 	float smove = mv->m_flSideMove * factor;
-	
 	
 	VectorNormalize (forward);  // Normalize remainder of vectors
 	VectorNormalize (right);    // 
@@ -2383,9 +2380,7 @@ void CGameMovement::PlaySwimSound()
 	MoveHelper()->StartSound( mv->GetAbsOrigin(), "Player.Swim" );
 }
 
-#define SA_MOVEMENT
-ConVar sa_sv_autojump("sv_autojump", "0", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
-ConVar sa_sv_queuejump("sv_queuejump", "1", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2399,7 +2394,6 @@ bool CGameMovement::CheckJumpButton( void )
 		mv->m_nOldButtons |= IN_JUMP ;	// don't jump again until released
 		return false;
 	}
-	
 
 	// See if we are waterjumping.  If so, decrement count and return.
 	if (player->m_flWaterJumpTime)
@@ -2447,23 +2441,10 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( player->m_Local.m_bSlowMovement )
 		return false;
 #endif
-	
 
 	//pressed jump on last tick/frame and both autojump and queuejump are disabled through console.
 	if ( mv->m_nOldButtons & IN_JUMP && !(mv->m_bRejumpAllowed ) ) {
 		return false;		// don't pogo stick
-	}
-	//My jumping shit 
-	//holding jump
-	if (mv->m_nButtons & IN_JUMP | mv->m_nOldButtons & IN_JUMP && pQueueJump->GetInt() == 1 && pAutoJump->GetInt() == 0) {
-		//holding jump and on the ground
-		if (player->GetGroundEntity() != NULL) {
-#ifdef CLIENT_DLL
-			engine->ClientCmd("-jump");
-#endif
-		}
-	}
-	
 
 	}
 	//DevMsg("Got past dont pogo \n");
@@ -2919,7 +2900,7 @@ inline bool CGameMovement::OnLadder( trace_t &trace )
 #if defined (CSTRIKE_DLL) || defined( SArena_DLL )
 ConVar sv_ladder_dampen ( "sv_ladder_dampen", "0.2", FCVAR_REPLICATED, "Amount to dampen perpendicular movement on a ladder", true, 0.0f, true, 1.0f );
 ConVar sv_ladder_angle( "sv_ladder_angle", "-0.707", FCVAR_REPLICATED, "Cos of angle of incidence to ladder perpendicular for applying ladder_dampen", true, -1.0f, true, 1.0f );
-//#endif
+#endif
 //=============================================================================
 // HPE_END
 //=============================================================================
@@ -3067,7 +3048,7 @@ bool CGameMovement::LadderMove( void )
 
 			if (angleDot < sv_ladder_angle.GetFloat())
 				lateral = (tmp * tmpDist) + (perp * sv_ladder_dampen.GetFloat() * perpDist);
-//#endif // CSTRIKE_DLL
+#endif // CSTRIKE_DLL
 			//=============================================================================
 			// HPE_END
 			//=============================================================================
