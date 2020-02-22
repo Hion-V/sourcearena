@@ -39,8 +39,8 @@ extern IFileSystem *filesystem;
 #ifndef SA_MOVEMENT
 	#define SA_MOVEMENT
 #endif
-ConVar sa_sv_pogostick("sv_pogostick", "0", FCVAR_REPLICATED, "queue jumps", 1, 0, 1, 1);
-ConVar sa_sv_queuejump("sv_queuejump", "1", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
+ConVar sa_sv_pogostick("sv_pogostick", "1", FCVAR_REPLICATED, "queue jumps", 1, 0, 1, 1);
+ConVar sa_sv_queuejump("sv_queuejump", "0", FCVAR_REPLICATED, "auto bunny hopping", 1, 0, 1, 1);
 
 
 
@@ -1946,7 +1946,7 @@ void CGameMovement::WalkMove( void )
 		player->ViewPunch(camTilt);
 
 	}
-	
+
 	// Zero out z components of movement vectors
 	if ( g_bMovementOptimizations )
 	{
