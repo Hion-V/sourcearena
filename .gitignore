@@ -74,7 +74,6 @@ sp/game/mod_hl2/voice_ban.dt
 *.vpc_crc
 *.sentinel
 *.filters
-*.lib
 
 #game directories
 sp/game/*
